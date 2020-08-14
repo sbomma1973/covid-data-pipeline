@@ -14,7 +14,7 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import json
 import logging
-import glob
+import csv
 
 
 
@@ -32,7 +32,7 @@ logging.info('Executing Ingest Script:', dt_string)
 def search_ (uri, term, username,  password):
     #""Simple Elasticsearch query""
     #json_data = updateJson(sys.argv[1])
-    headers = {'Content-Type':'application/json'}
+    headers = {'Content-Type':'application/json','Connection' : 'close'}
     stringterm = term
     print ('********term*********', stringterm)
     #search = {'query': {'match_all': {}}}
@@ -60,7 +60,7 @@ def repo_update_fn():
 def create_ingest_pipeline(url, username, password):
     # ""Simple Elasticsearch query""
     # json_data = updateJson(sys.argv[1])
-    headers = {'Content-Type': 'application/json'}
+    headers = {'Content-Type': 'application/json', 'Connection' : 'close'}
     pipeline_str = {"description": "Ingest pipeline created by file structure finder",
                     "processors": [{"csv":{"field": "message","target_fields" :
                         [ "Province_State", "Country_Region", "Last_Update", "Lat", "Long_",  "Confirmed", "Deaths",
@@ -91,12 +91,29 @@ def create_ingest_pipeline(url, username, password):
     results = json.loads(pipe_response.text)
     return results
 
-def create_index_mapping(url, username, password, index_name):
-    print ("Create index function:")
-    url = url + index_name + "/_mapping"
+def delete_index (url,  username, password, index_name):
+    print ("deleting index -- ", index_name)
+    url  = url + index_name
     print (url)
-    headers = {'Content-Type': 'application/json'}
-    mappinig_str = {"properties" : {
+    headers = {'Content-Type': 'application/json', 'Connection': 'close'}
+    mapping_resp = requests.delete(url, auth=HTTPBasicAuth(username, password), headers=headers)
+    print ("delete reps--", mapping_resp)
+    return mapping_resp
+
+
+
+def create_index_mapping(url, username, password, index_name):
+    print ("INFO: --- Create index mapping function:")
+    url = url + index_name
+    print (url)
+    headers = {'Content-Type': 'application/json', 'Connection': 'close'}
+    mappinig_str = {
+        "mappings":{
+            "_meta" :{
+                "created by" : "script"
+            }
+        ,
+        "properties" : {
         "@timestamp" : {
             "type" : "date"
         },
@@ -154,22 +171,22 @@ def create_index_mapping(url, username, password, index_name):
         },
         "UID" : {
             "type" : "long"
-        }}}
+        }}}}
     mapping = json.dumps(mappinig_str)
     mapping_resp = requests.put(url,data=mapping, auth=HTTPBasicAuth(username, password), headers=headers)
 
-    print ("response", mapping_resp.text)
+    print ("index mappinig function response", mapping_resp.text)
 
     return mapping_resp.text
 
 
 
 def get_index_mapping (url, username, password, index_name):
-    print ("create mapping fun")
+    print ("INFO: find mapping fun")
     url=url+index_name+"/_mapping"
-    print (url)
-    headers = {'Content-Type': 'application/json'}
-    mapping = json.dumps(mappinig_str)
+   # print (url)
+    headers = {'Content-Type': 'application/json', 'Connection': 'close'}
+    #mapping = json.dumps(mappinig_str)
     mapping_resp = requests.get(url,  auth=HTTPBasicAuth(username, password),  headers=headers)
     print ("response", mapping_resp.text)
     if "404" in mapping_resp.text:
@@ -188,7 +205,7 @@ if __name__ == '__main__':
 
 
     username = "elastic"
-    password = "LAU4nTN2bHqWdrUsFZ3nVBta"
+    password = "VoUxGCZVxUaynYjjcjK46Q9C"
 
     print ('url:', url)
     print (username)
@@ -201,7 +218,7 @@ if __name__ == '__main__':
     #response = search_(url, term, username, password)
     #print(response)
 
-    #response1 = create_ingest_pipeline(urlpipeline, username, password)
+    response1 = create_ingest_pipeline(urlpipeline, username, password)
    # print (response1)
 
     #response2 = create_mappinig()
@@ -210,26 +227,33 @@ if __name__ == '__main__':
     #print (arr)
     for file in arr:
         file_name = file.rsplit('.', 1)[0]
+        file1 = path + file
         #print (file)
         index_name = "indexcovid-"+file_name
         #print ("indexname:", index_name)
         result = get_index_mapping(urlmapping,username, password, index_name)
         print (result)
         if result == "True":
-            #resp=create_index_mapping (urlmapping, username, password, index_name)
+            resp=create_index_mapping (urlmapping, username, password, index_name)
             #print resp
             file_path = path+file
-            while read file_path
+            print (file_path)
+            url_insert = urlmapping+index_name+"?pipeline=COVID_PIPELINE_US"
+            with open(file1) as f_obj:
+                  #reader = csv.DictReader(f_obj)
+                  headers = {'Content-Type': 'application/json', 'Connection':'close'}
+                  result1 = requests.put(url_insert ,data=f_obj, auth=HTTPBasicAuth(username, password), headers=headers )
+                  print (url_insert)
+                  print (file)
+                  #print (csvFile.writelines())
+                  print (result1.text)
 
-                do
-                 print   ("***",file_path)
-                 print   ("***",index_name)
-                 print   ("Creating index using  curl")
-                done
-             requests.post( url)
+                  f_obj.close()
+
 
         else:
-            print (Index exists)
+            resp=delete_index(urlmapping, username, password, index_name)
+            print ("Index exists", resp)
 
 
 #print(x.text)
