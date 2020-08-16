@@ -51,7 +51,7 @@ def search_ (uri, term, username,  password):
 #function to update the repo
 def repo_update_fn():
     print ('***************** Updating Repository:', dt_string)
-    # os.system(
+    os.system(
         'cd /Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports; git pull --verbose')
 
     os.system('pwd')
@@ -278,6 +278,7 @@ if __name__ == '__main__':
 
             else:
                 #resp=delete_index(urlmapping, username, password, index_name)
+                resp = index_name
                 print ("Index exists", resp)
 
 
