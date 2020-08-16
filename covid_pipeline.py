@@ -52,7 +52,7 @@ def search_ (uri, term, username,  password):
 def repo_update_fn():
     print ('***************** Updating Repository:', dt_string)
     # os.system(
-        #'cd /Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports; git pull --verbose')
+        'cd /Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports; git pull --verbose')
 
     os.system('pwd')
 
@@ -62,12 +62,15 @@ def create_ingest_pipeline(url, username, password):
     # json_data = updateJson(sys.argv[1])
     headers = {'Content-Type': 'application/json', 'Connection' : 'close'}
     pipeline_str = {"description": "Ingest pipeline created by file structure finder",
-                    "processors": [{"csv":{"field": "message","target_fields" :
-                        [ "Province_State", "Country_Region", "Last_Update", "Lat", "Long_",  "Confirmed", "Deaths",
-                          "Recovered", "Active", "FIPS", "Incident_Rate","People_Tested", "People_Hospitalized",
-                          "Mortality_Rate","UID", "ISO3", "Testing_Rate","Hospitalization_Rate"
-                        ], "ignore_missing": False}}
-                        ,{ "date": { "field": "Last_Update", "timezone": "{{ event.timezone }}"
+                    "processors": [
+                        {"csv":
+                             {"field": "message",
+                              "target_fields":
+                                    [ "Province_State", "Country_Region", "Last_Update", "Lat", "Long_",  "Confirmed", "Deaths",
+                                     "Recovered", "Active", "FIPS", "Incident_Rate","People_Tested", "People_Hospitalized",
+                                     "Mortality_Rate","UID", "ISO3", "Testing_Rate","Hospitalization_Rate"
+                                    ], "ignore_missing": False}}
+                        ,{ "date": { "field": "Last_Update", "timezone": "UTC"
                             , "formats": [ "yyyy-MM-dd HH:mm:ss"  ] } }
                         , { "convert": { "field": "Active", "type": "double","ignore_missing": True}}
                         , { "convert": { "field": "Confirmed","type": "long", "ignore_missing": True }}
@@ -100,6 +103,22 @@ def delete_index (url,  username, password, index_name):
     print ("delete reps--", mapping_resp)
     return mapping_resp
 
+def insert_into_index (url, username, password, index, field_data):
+    #print ("INFO: --- Insert into index")
+    headers = {'Content-Type': 'application/json', 'Connection': 'close'}
+    field_data_str = ','.join(field_data)
+
+    insert_data = {"message":  field_data_str  }
+    insert_data_json = json.dumps(insert_data)
+    print ("url>>>>", url)
+    print ("insert_data:", insert_data_json)
+    insert_resp = requests.post (url, data = insert_data_json, auth=HTTPBasicAuth(username, password), headers=headers)
+    print (  "****Insert Resp:", insert_resp.text )
+
+    #return (insert_resp.text)
+
+
+
 
 
 def create_index_mapping(url, username, password, index_name):
@@ -108,70 +127,72 @@ def create_index_mapping(url, username, password, index_name):
     print (url)
     headers = {'Content-Type': 'application/json', 'Connection': 'close'}
     mappinig_str = {
-        "mappings":{
-            "_meta" :{
-                "created by" : "script"
+        "mappings": {
+
+            "_meta": {
+                "created by": "script"
             }
-        ,
-        "properties" : {
-        "@timestamp" : {
-            "type" : "date"
-        },
-        "Active" : {
-            "type" : "double"
-        },
-        "Confirmed" : {
-            "type" : "long"
-        },
-        "Country_Region" : {
-            "type" : "keyword"
-        },
-        "Deaths" : {
-            "type" : "long"
-        },
-        "FIPS" : {
-            "type" : "long"
-        },
-        "Hospitalization_Rate" : {
-            "type" : "double"
-        },
-        "ISO3" : {
-            "type" : "keyword"
-        },
-        "Incident_Rate" : {
-            "type" : "double"
-        },
-        "Last_Update" : {
-            "type" : "date",
-            "format" : "yyyy-MM-dd HH:mm:ss"
-        },
-        "Lat" : {
-            "type" : "double"
-        },
-        "Long_" : {
-            "type" : "double"
-        },
-        "Mortality_Rate" : {
-            "type" : "double"
-        },
-        "People_Hospitalized" : {
-            "type" : "long"
-        },
-        "People_Tested" : {
-            "type" : "long"
-        },
-        "Province_State" : {
-            "type" : "keyword"
-        },
-        "Recovered" : {
-            "type" : "long"
-        },
-        "Testing_Rate" : {
-            "type" : "double"
-        },
-        "UID" : {
-            "type" : "long"
-        }}}}
+            ,
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "Active": {
+                    "type": "double"
+                },
+                "Confirmed": {
+                    "type": "long"
+                },
+                "Country_Region": {
+                    "type": "keyword"
+                },
+                "Deaths": {
+                    "type": "long"
+                },
+                "FIPS": {
+                    "type": "long"
+                },
+                "Hospitalization_Rate": {
+                    "type": "double"
+                },
+                "ISO3": {
+                    "type": "keyword"
+                },
+                "Incident_Rate": {
+                    "type": "double"
+                },
+                "Last_Update": {
+                    "type": "date",
+                    "format": "yyyy-MM-dd HH:mm:ss"
+                },
+                "Lat": {
+                    "type": "double"
+                },
+                "Long_": {
+                    "type": "double"
+                },
+                "Mortality_Rate": {
+                    "type": "double"
+                },
+                "People_Hospitalized": {
+                    "type": "long"
+                },
+                "People_Tested": {
+                    "type": "long"
+                },
+                "Province_State": {
+                    "type": "keyword"
+                },
+                "Recovered": {
+                    "type": "long"
+                },
+                "Testing_Rate": {
+                    "type": "double"
+                },
+                "UID": {
+                    "type": "long"
+                }}}}
+
     mapping = json.dumps(mappinig_str)
     mapping_resp = requests.put(url,data=mapping, auth=HTTPBasicAuth(username, password), headers=headers)
 
@@ -198,7 +219,7 @@ def get_index_mapping (url, username, password, index_name):
 if __name__ == '__main__':
     logging.info(dt_string + 'test')
     repo_update_fn()
-    path="/Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports/"
+    path="/Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports_us/"
     url = "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/covid*/_search"
     urlpipeline = "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/_ingest/pipeline/COVID_PIPELINE_US"
     urlmapping="https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/"
@@ -219,41 +240,45 @@ if __name__ == '__main__':
     #print(response)
 
     response1 = create_ingest_pipeline(urlpipeline, username, password)
-   # print (response1)
+    print ("pipeline response:", response1)
 
-    #response2 = create_mappinig()
+    #exit  (1)
 
-    arr = os.listdir ('/Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports/')
+    arr = os.listdir (path)
     #print (arr)
     for file in arr:
+
         file_name = file.rsplit('.', 1)[0]
-        file1 = path + file
-        #print (file)
-        index_name = "indexcovid-"+file_name
-        #print ("indexname:", index_name)
-        result = get_index_mapping(urlmapping,username, password, index_name)
-        print (result)
-        if result == "True":
-            resp=create_index_mapping (urlmapping, username, password, index_name)
-            #print resp
-            file_path = path+file
-            print (file_path)
-            url_insert = urlmapping+index_name+"?pipeline=COVID_PIPELINE_US"
-            with open(file1) as f_obj:
-                  #reader = csv.DictReader(f_obj)
-                  headers = {'Content-Type': 'application/json', 'Connection':'close'}
-                  result1 = requests.put(url_insert ,data=f_obj, auth=HTTPBasicAuth(username, password), headers=headers )
-                  print (url_insert)
-                  print (file)
-                  #print (csvFile.writelines())
-                  print (result1.text)
+        if file_name != "README":
 
-                  f_obj.close()
+            file1 = path + file
+            #print (file)
+            index_name = "indexcovid-"+file_name
+            #print ("indexname:", index_name)
+            result = get_index_mapping(urlmapping,username, password, index_name)
+            print (result)
+            if result == "True":
+                resp=create_index_mapping (urlmapping, username, password, index_name)
+                print ("create mapping response:", resp)
+
+                url_insert = urlmapping+index_name+"/_doc?pipeline=COVID_PIPELINE_US"
+                with open(file1) as csvf:
+                    csvReader = csv.reader(csvf)
+
+                #Skip the header
+                    next(csvReader)
+
+                    for rows in csvReader:
+                        print ("processing file:", file1)
 
 
-        else:
-            resp=delete_index(urlmapping, username, password, index_name)
-            print ("Index exists", resp)
+                        insert_into_index(url_insert, username, password, index_name, rows)
+                     #print ("rows", rows)
+
+
+            else:
+                #resp=delete_index(urlmapping, username, password, index_name)
+                print ("Index exists", resp)
 
 
 #print(x.text)
