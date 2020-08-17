@@ -270,7 +270,3 @@ if __name__ == '__main__':
                 print ("Index exists", resp)
 
 
-#print(x.text)
-
-
-
