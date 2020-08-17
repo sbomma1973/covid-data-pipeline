@@ -16,9 +16,6 @@ import json
 import logging
 import csv
 
-
-
-
 #date time setup for the script
 
 logging.info('Setting Datetime:')
@@ -75,15 +72,15 @@ def create_ingest_pipeline(url, username, password):
                         , { "convert": { "field": "Active", "type": "double","ignore_missing": True}}
                         , { "convert": { "field": "Confirmed","type": "long", "ignore_missing": True }}
                         , { "convert": { "field": "Deaths", "type": "long", "ignore_missing": True}}
-                        , { "convert": { "field": "FIPS","type": "long", "ignore_missing": True }}
+                        #, { "convert": {  "if": "type" == "integer" field": "FIPS","type": "long", "ignore_missing": True }}
                         , { "convert": { "field": "Hospitalization_Rate", "type": "double", "ignore_missing": True}}
                         , { "convert": { "field": "Incident_Rate","type": "double","ignore_missing": True}}
                         , { "convert": { "field": "Lat","type": "double","ignore_missing": True}}
                         , { "convert": { "field": "Long_", "type": "double","ignore_missing": True }}
                         , { "convert": { "field": "Mortality_Rate", "type": "double",  "ignore_missing": True}}
-                        , { "convert": { "field": "People_Hospitalized", "type": "long", "ignore_missing": True}}
-                        , { "convert": { "field": "People_Tested",  "type": "long","ignore_missing": True}}
-                        , { "convert": { "field": "Recovered", "type": "long", "ignore_missing": True }}
+                        #, { "convert": { "field": "People_Hospitalized", "type": "long", "ignore_missing": True}}
+                        #, { "convert": { "field": "People_Tested",  "type": "long","ignore_missing": True}}
+                        #, { "convert": { "field": "Recovered", "type": "long", "ignore_missing": True }}
                         , { "convert": { "field": "Testing_Rate",  "type": "double", "ignore_missing": True}}
                         , { "convert": { "field": "UID", "type": "long", "ignore_missing": True }}
                         , {"remove": {"field": "message" }}]}
@@ -116,10 +113,6 @@ def insert_into_index (url, username, password, index, field_data):
     print (  "****Insert Resp:", insert_resp.text )
 
     #return (insert_resp.text)
-
-
-
-
 
 def create_index_mapping(url, username, password, index_name):
     print ("INFO: --- Create index mapping function:")
@@ -200,8 +193,6 @@ def create_index_mapping(url, username, password, index_name):
 
     return mapping_resp.text
 
-
-
 def get_index_mapping (url, username, password, index_name):
     print ("INFO: find mapping fun")
     url=url+index_name+"/_mapping"
@@ -246,7 +237,7 @@ if __name__ == '__main__':
 
     arr = os.listdir (path)
     #print (arr)
-    for file in arr:
+    for file in sorted(arr):
 
         file_name = file.rsplit('.', 1)[0]
         if file_name != "README":
@@ -271,11 +262,8 @@ if __name__ == '__main__':
                     for rows in csvReader:
                         print ("processing file:", file1)
 
-
                         insert_into_index(url_insert, username, password, index_name, rows)
                      #print ("rows", rows)
-
-
             else:
                 #resp=delete_index(urlmapping, username, password, index_name)
                 resp = index_name
