@@ -1,0 +1,6 @@
+path: "/Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports_us/"
+url: "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/covid*/_search"
+urlpipeline: "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/_ingest/pipeline/COVID_PIPELINE_US"
+urlmapping: "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/"
+username: "elastic"
+password: "VoUxGCZVxUaynYjjcjK46Q9C"
