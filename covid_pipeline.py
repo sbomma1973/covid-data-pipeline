@@ -15,6 +15,10 @@ from requests.auth import HTTPBasicAuth
 import json
 import logging
 import csv
+import yaml
+import confuse
+
+
 
 #date time setup for the script
 
@@ -24,6 +28,10 @@ dt_string = now.strftime("%m%d%Y %H:%M:%S")
 logging.info('Executing Ingest Script:', dt_string)
 
 #functions
+def read_from_file():
+    with open('config.yml') as f:
+        data = yaml.load (f, Loader=yaml.FullLoader)
+        return data
 
 #function to execute search
 def search_ (uri, term, username,  password):
@@ -209,15 +217,25 @@ def get_index_mapping (url, username, password, index_name):
 # Main function to get executed to process rest of the files
 if __name__ == '__main__':
     logging.info(dt_string + 'test')
+
+    #read config from yaml file.
+    data=read_from_file()
+    username = data['username']
+    password = data['password']
+    url = data['url']
+    urlmapping = data['urlmapping']
+    urlpipeline = data ['urlpipeline']
+    path = data['path']
+
+    print ("username:", username)
+    print ("password:", password)
+    print ("url:", url)
+    print ("urlmapping:", urlmapping)
+    print ("urlpipeline:", urlpipeline)
+
+
+
     repo_update_fn()
-    path="/Users/satishbomma/Coviddata/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports_us/"
-    url = "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/covid*/_search"
-    urlpipeline = "https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/_ingest/pipeline/COVID_PIPELINE_US"
-    urlmapping="https://33e09c9e1d204546af0289c6ad97fcd6.us-central1.gcp.cloud.es.io:9243/"
-
-
-    username = "elastic"
-    password = "VoUxGCZVxUaynYjjcjK46Q9C"
 
     print ('url:', url)
     print (username)
