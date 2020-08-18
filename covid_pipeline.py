@@ -13,16 +13,18 @@ import requests;
 from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import json
-import logging
 import csv
 import yaml
+import logging
+
 import confuse
 
 
 
 #date time setup for the script
+log = logging.getLogger("CovidDataLog")
+log.info('Setting Datetime:')
 
-logging.info('Setting Datetime:')
 now = datetime.now();
 dt_string = now.strftime("%m%d%Y %H:%M:%S")
 logging.info('Executing Ingest Script:', dt_string)
@@ -202,7 +204,7 @@ def create_index_mapping(url, username, password, index_name):
     return mapping_resp.text
 
 def get_index_mapping (url, username, password, index_name):
-    print ("INFO: find mapping fun")
+    #print ("INFO: find mapping fun")
     url=url+index_name+"/_mapping"
    # print (url)
     headers = {'Content-Type': 'application/json', 'Connection': 'close'}
@@ -216,7 +218,8 @@ def get_index_mapping (url, username, password, index_name):
 
 # Main function to get executed to process rest of the files
 if __name__ == '__main__':
-    logging.info(dt_string + 'test')
+    log = logging.getLogger("CovidDataLog")
+    log.info('Setting Datetime:')
 
     #read config from yaml file.
     data=read_from_file()
@@ -227,26 +230,22 @@ if __name__ == '__main__':
     urlpipeline = data ['urlpipeline']
     path = data['path']
 
-    print ("username:", username)
-    print ("password:", password)
-    print ("url:", url)
-    print ("urlmapping:", urlmapping)
-    print ("urlpipeline:", urlpipeline)
+    log.info("username:",username)
 
+    log.info ("username:", username)
+    log.info ("password:", password)
+    log.info ("url:", url)
+    log.info ("urlmapping:", urlmapping)
+    log.info ("urlpipeline:", urlpipeline)
 
+    #exit(1)
 
     repo_update_fn()
 
-    print ('url:', url)
-    print (username)
-    print (password)
+    #print ('url:', url)
+    #print (username)
+    #print (password)
 
-    # See PyCharm help at https://www.jetbrains.com/help/pycharm/
-
-    # x = requests.get(url,auth=HTTPBasicAuth(username,password))
-    term = 'satish'
-    #response = search_(url, term, username, password)
-    #print(response)
 
     response1 = create_ingest_pipeline(urlpipeline, username, password)
     print ("pipeline response:", response1)
